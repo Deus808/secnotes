@@ -36,14 +36,6 @@
     fileEl.value = "";
   });
 
-  // 悬浮按钮
-  var fab = el("button", "",
-    'fb-fab');
-  fab.setAttribute("aria-label", "反馈");
-  fab.appendChild(el("span",
-    '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.5 8.5 0 0 1-3.6-.8L3 20l1.1-4.2A8.2 8.2 0 0 1 3 11.5 8.38 8.38 0 0 1 11.5 3.2h1A8.38 8.38 0 0 1 21 11.5z"/></svg>'));
-  fab.appendChild(el("span", "反馈", "fb-fab-label"));
-
   // 弹层
   var overlay = el("div", "", "fb-overlay");
   overlay.innerHTML =
@@ -59,7 +51,6 @@
         '<button class="fb-btn primary" id="fbSubmit">提交</button>' +
       '</div>' +
     '</div>';
-  document.body.appendChild(fab);
   document.body.appendChild(overlay);
 
   function $(id) { return document.getElementById(id); }
@@ -203,7 +194,6 @@
     overlay.classList.remove("open");
   }
 
-  fab.addEventListener("click", openPanel);
   $("fbCancel").addEventListener("click", closePanel);
   overlay.addEventListener("click", function (e) {
     if (e.target === overlay) closePanel();
