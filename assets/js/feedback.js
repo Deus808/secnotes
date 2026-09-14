@@ -212,4 +212,14 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && overlay.classList.contains("open")) closePanel();
   });
+
+  // 供导航栏「反馈」入口复用同一弹层（由 deploy.py 把“关于”替换为 #navFeedback）
+  window.SecFeedbackOpen = openPanel;
+  var navFb = document.getElementById("navFeedback");
+  if (navFb) {
+    navFb.addEventListener("click", function (e) {
+      e.preventDefault();
+      openPanel();
+    });
+  }
 })();
