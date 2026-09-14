@@ -129,7 +129,7 @@
     if (head === 'note') return { name: 'note', slug: parts.slice(1).join('/') };
     if (head === 'category') return { name: 'home', category: parts.slice(1).join('/') };
     if (head === 'tag') return { name: 'home', tag: parts.slice(1).join('/') };
-    if (head === 'archive' || head === 'tags' || head === 'about') return { name: head };
+    if (head === 'archive' || head === 'tags' ) return { name: head };
     return { name: 'home' };
   }
 
@@ -584,8 +584,7 @@
     if (route.name === 'note') html = viewPost(route, note);
     else if (route.name === 'archive') html = viewArchive();
     else if (route.name === 'tags') html = viewTags();
-    else if (route.name === 'about') html = viewAbout();
-    else html = viewHome(route);
+        else html = viewHome(route);
 
     app.innerHTML = html;
 
