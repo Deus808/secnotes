@@ -41,22 +41,53 @@
   overlay.innerHTML =
     '<div class="fb-modal">' +
       '<h3>反馈问题</h3>' +
-      '<p class="fb-sub">欢迎指出错误、遗漏或改进建议。提交前请先登录 GitHub 账号。</p>' +
+      '<p class="fb-sub">欢迎指出错误、遗漏或改进建议。请先选择一种反馈方式。</p>' +
+      '<div class="fb-tabs" id="fbTabs" role="tablist">' +
+        '<button type="button" class="fb-tab active" id="fbTabEmail" data-tab="email">方式一 · 邮箱</button>' +
+        '<button type="button" class="fb-tab" id="fbTabGithub" data-tab="github">方式二 · GitHub</button>' +
+      '</div>' +
+      '<div class="fb-recip" id="fbRecip">' +
+        '<span class="fb-recip-label">接收邮箱：</span>' +
+        '<label class="fb-recip-item"><input type="radio" name="fbRecip" value="cn" checked>中国境内 · deus8800@126.com</label>' +
+        '<label class="fb-recip-item"><input type="radio" name="fbRecip" value="intl">国际 · deus880088@gmail.com</label>' +
+      '</div>' +
       '<textarea id="fbText" placeholder="请描述你要反馈的问题…（支持纯文本，无需排版）"></textarea>' +
       '<div class="fb-imgs" id="fbImgs"></div>' +
       '<div class="fb-tip" id="fbTip"></div>' +
       '<div class="fb-actions">' +
-        '<span class="fb-note">提交后会打开 GitHub 新标签页，确认后点击「Submit new issue」即完成。</span>' +
+        '<span class="fb-note" id="fbNote"></span>' +
         '<button class="fb-btn secondary" id="fbCancel">取消</button>' +
-        '<button class="fb-btn primary" id="fbSubmit">提交</button>' +
+        '<button class="fb-btn primary" id="fbSubmit">打开邮箱</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(overlay);
 
   function $(id) { return document.getElementById(id); }
   var textEl = $("fbText"), imgsEl = $("fbImgs"),
-      tipEl = $("fbTip"), submitBtn = $("fbSubmit");
+      tipEl = $("fbTip"), submitBtn = $("fbSubmit"),
+      noteEl = $("fbNote"), recipEl = $("fbRecip"),
+      tabEmail = $("fbTabEmail"), tabGithub = $("fbTabGithub");
   var items = [];          // { dataUrl }
+  var currentTab = "email";
+
+  // 方式切换：邮箱 与 GitHub 共用同一块界面
+  function switchTab(tab) {
+    currentTab = tab;
+    tabEmail.classList.toggle("active", tab === "email");
+    tabGithub.classList.toggle("active", tab === "github");
+    recipEl.hidden = tab !== "email";
+    imgsEl.hidden = tab !== "github";              // 邮箱方式不支持图片附件
+    if (tab === "email") {
+      submitBtn.textContent = "打开邮箱";
+      noteEl.textContent = "将调用你的邮件客户端写信，收件人已自动填入所选邮箱；邮箱方式暂不支持图片附件。";
+    } else {
+      submitBtn.textContent = "提交";
+      noteEl.textContent = "提交后会打开 GitHub 新标签页，登录后点击「Submit new issue」即完成。";
+    }
+  }
+  tabEmail.addEventListener("click", function () { switchTab("email"); });
+  tabGithub.addEventListener("click", function () { switchTab("github"); });
+  switchTab("email");
 
   function iconBtnHTML(c) {
     if (c === "img") {
@@ -169,8 +200,10 @@
     hideTip();
     var text = buildText();
     if (!text && items.length === 0) {
-      return void showTip("请至少填写一段文字或添加一张图片", true);
+      return void showTip("请至少填写一段文字" + (currentTab === "email" ? "" : "或添加一张图片"), true);
     }
+    if (currentTab === "email") return commitByEmail(text);
+
     var title = buildTitle(text);
     var body = buildBody(text);
     var url = "https://github.com/" + REPO + "/issues/new?"
@@ -178,6 +211,28 @@
       + "&body=" + encodeURIComponent(body);
     window.open(url, "_blank", "noopener");
     showTip("已在新标签页打开 GitHub。若未弹出，请点击悬浮按钮重试。确认内容无误后，点击「Submit new issue」即完成提交。");
+    closePanel();
+  }
+
+  // 方式一：通过本机邮件客户端发信到所选邮箱
+  function commitByEmail(text) {
+    var recip = document.querySelector('input[name="fbRecip"]:checked');
+    var to = recip && recip.value === "intl" ? "deus880088@gmail.com" : "deus8800@126.com";
+    var subject = buildTitle(text);
+    var body = [
+      text,
+      "",
+      "---",
+      "",
+      "- **时间**：" + new Date().toLocaleString("zh-CN"),
+      "- **来源页**：[" + document.title + "](" + location.href + ")",
+      "",
+      "> 本邮件由站点访客填写，通过本机邮件客户端发送。"
+    ].join("\n");
+    location.href = "mailto:" + to
+      + "?subject=" + encodeURIComponent(subject)
+      + "&body=" + encodeURIComponent(body);
+    showTip("已为你打开邮件客户端，收件人：" + to + "。补全后点击「发送」即完成反馈。");
     closePanel();
   }
 
