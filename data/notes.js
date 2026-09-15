@@ -4,7 +4,7 @@ window.SEC_BLOG = {
 "config":{
 "title":"Deus",
 "subtitle":"欢迎来到我的网站",
-"description":"这里见证着s我学习网安的点点滴滴",
+"description":"这里见证着我学习网安的点点滴滴",
 "author":"Deus",
 "footer":"记录 · 复盘",
 "defaultTheme":"dark",
@@ -16,7 +16,7 @@ window.SEC_BLOG = {
 "categories":2,
 "tags":0,
 "words":101,
-"builtAt":"2026-09-14 20:57"
+"builtAt":"2026-09-15 13:05"
 },
 "categories":[
 [
