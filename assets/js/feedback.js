@@ -260,11 +260,9 @@
 
   // 供导航栏「反馈」入口复用同一弹层（由 deploy.py 把“关于”替换为 #navFeedback）
   window.SecFeedbackOpen = openPanel;
-  var navFb = document.getElementById("navFeedback");
-  if (navFb) {
-    navFb.addEventListener("click", function (e) {
-      e.preventDefault();
-      openPanel();
-    });
+  function bindTrigger(el) {
+    if (el) el.addEventListener("click", function (e) { e.preventDefault(); openPanel(); });
   }
+  bindTrigger(document.getElementById("navFeedback"));     // 桌面顶栏
+  bindTrigger(document.getElementById("mobileFeedback"));  // 移动端侧栏抽屉顶部
 })();
