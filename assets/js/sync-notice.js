@@ -22,12 +22,30 @@
     })();
   }
 
-  // “2026-09-15 17:04” → “9月15日 17:04”；不合法则返回空串
-  function formatBuiltAt(v) {
-    var m = String(v || "").match(/^\s*\d{4}-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})/);
+  // “2026-09-15 17:04” → Date；无法解析返回 null
+  function parseBuiltAt(v) {
+    var m = String(v || "").match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1,
+                    parseInt(m[3], 10), parseInt(m[4], 10), parseInt(m[5], 10));
+  }
+
+  // “2026-09-15 17:04” → “9月15日 17:04”
+  function prettyTime(v) {
+    var m = String(v || "").match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})/);
     if (!m) return "";
     return parseInt(m[1], 10) + "月" + parseInt(m[2], 10) + "日 " +
            m[3] + ":" + m[4];
+  }
+
+  // 提示文案：5 小时内更新 → 显示具体时间；超过 5 小时 → “站主未起床”
+  function noticeText(builtAt) {
+    var STALE = "超5小时，站主未起床";
+    var dt = parseBuiltAt(builtAt);
+    if (!dt) return STALE;                       // 无有效同步时间，视为久未更新
+    var hours = (Date.now() - dt.getTime()) / 3600000;
+    if (hours > 5) return STALE;                 // 超过 5 小时未更新
+    return '本网站最近一次同步时间为 <b>' + prettyTime(builtAt) + '</b>';
   }
 
   // 是否已「不再提示」（在同一版本 builtAt 下）
@@ -40,11 +58,8 @@
   }
 
   function build(builtAt) {
-    var text = formatBuiltAt(builtAt);
-    // 未完善的同步时间 → 提示站主还没起床
-    var bodyHTML = text
-      ? '本网站最近一次同步时间为 <b>' + text + '</b>'
-      : '本站同步时间暂未完善，站主还没起床，请耐心等待～';
+    // 同步时间 5 小时内 → 具体时间；超过 5 小时 → 站主未起床
+    var bodyHTML = noticeText(builtAt);
 
     var wrap = document.createElement("div");
     wrap.className = "sn-wrap";
