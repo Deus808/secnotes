@@ -34,8 +34,8 @@
   function prettyTime(v) {
     var m = String(v || "").match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})/);
     if (!m) return "";
-    return parseInt(m[1], 10) + "月" + parseInt(m[2], 10) + "日 " +
-           m[3] + ":" + m[4];
+    return parseInt(m[2], 10) + "月" + parseInt(m[3], 10) + "日 " +
+           m[4] + ":" + m[5];   // “2026-09-15 17:04” → “9月15日 17:04”
   }
 
   // 提示文案：5 小时内更新 → 显示具体时间；超过 5 小时 → “站主未起床”
