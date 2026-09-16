@@ -12,16 +12,16 @@ window.SEC_BLOG = {
 "siteUrl":""
 },
 "stats":{
-"notes":2,
+"notes":3,
 "categories":2,
 "tags":2,
-"words":677,
-"builtAt":"2026-09-16 14:46"
+"words":1985,
+"builtAt":"2026-09-16 17:13"
 },
 "categories":[
 [
 "Web基础知识",
-1
+2
 ],
 [
 "杂谈",
@@ -40,6 +40,20 @@ window.SEC_BLOG = {
 ],
 "notes":[
 {
+"slug":"http协议",
+"title":"HTTP协议",
+"date":"2026-09-16",
+"category":"Web基础知识",
+"tags":[],
+"summary":"HTTP协议：浏览器与服务器交流的统一协议 一、四大特点 1. 第一项基于TCP/IP协议：HTTP所有请求与响应建立在TCP三次握手成功后 1. 第一项第一项默认端口是80：HTTP默认80，HTTPS则默认是443 1. 第一项请求与响应：一次请求就有一次…",
+"body":"HTTP协议：浏览器与服务器交流的统一协议\n\n## 一、四大特点\n1. 第一项基于TCP/IP协议：HTTP所有请求与响应建立在TCP三次握手成功后\n1. 第一项第一项默认端口是80：HTTP默认80，HTTPS则默认是443\n1. 第一项请求与响应：一次请求就有一次响应，一一对应，不多不少\n1. 第一项无状态协议：HTTP协议本身是没记性的，它不记录上次访问的信息。因此，为了记住你的信息，发明了Cookie和Session\n\n## 二、两种常用的请求方法\nHTTP协议的8种请求方式：\n其中最常见的两种方式是GET和POST，下面逐一分析：\n### 2.1. GET请求\n- 用于向服务器获取/查询资源\n- 请求参数会直接拼接在URL地址里\n- 其传输数据有长度限制（通常为2KB~8KB）\n```bash\nGET示例：（用NFS教室导航知名1-101）：\nhttps://nfs.pcdawn.cn/api/app/classroomNavigation/public/media?id=59493c3f-c49a-43bd-95e7-3277255f9244\n*这个请求的资源实际上是导航到1-101的那张示例照片\n```\n\n### 2.2. POST请求\n- 用于向服务器提交/更新资源（登录/上传等）\n- 请求参数放在协议的请求体中\n- 理论上无大小限制，适合传输大文件/数据包/JSON表单\n```bash\nPOST示例（位于请求体）：\nContent-Type: application/x-www-form-urlencoded;charset=utf-8\n```\n\n## 三、请求消息-Request结构拆解\n*以下是在福师大教务处登录界面提交账密为12345登录请求的抓包结果，发现其为POST请求，接下来逐步分析*\n\n### 3.1. 请求行\n```bash \n请求方式                   请求URI                     协议及版本\n  POST      /jwglxt/xtgl/yhgl_cxXxqrCheck.html        HTTP/2\n``` \n\n### 3.2. 请求头\n#### 3.2.1. Host请求目标\n指明请求的目标主机域名或IP地址 （用于在一台服务器部署多个虚拟主机做站点区分）\n```bash\nHost: jwglxt.fjnu.edu.cn\n```\n#### 3.2.2. User-Agent 客户端指纹\n告诉服务器浏览器版本与操作系统环境（服务器据此解决兼容性问题，规避自动化扫描器的阻断）\n```bash\nUser-Agent: \nMozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0\n比如这里就透露了客户端操作系统版本Linux、浏览器核心指纹Firefox/140.0\n```\n*自动化工具nmap、如sqlmap都带着自己的UA，运维看到反手就是永久封禁，所以写自动化脚本等得把这个“马甲”换好*\n#### 3.2.3. Accept 媒体类型限制\n告诉服务器，客户端浏览器可接收、处理的文件类型\n\n其中q代表权重/优先级/偏好程度，范围是0~1，q=1表示优先级最高，向0递减，q=0表示不接受此类型消息，未注明时q默认为1\n```bash\nAccept: application/json, text/javascript, */*; q=0.01\n如上面这条说明可处理JSON数据、JavaScript文本、和任意其他类型(*/*)。\n```\n\n#### 3.2.4. Referrer 来源溯源\n告诉服务器当前请求是从哪个页面跳转过来的\n\n*（运维常用于统计来源及防盗链防御，在安全视角下也常牵扯到CSPF漏洞验证）*\n```bash\nReferer: https://jwglxt.fjnu.edu.cn/jwglxt/xtgl/login_slogin.html？time=1789542970642\n这就是我们正常访问福师大教务处的登录界面，确实是由此跳转的\n```\n\n#### 3.2.5. Accept-Encoding/Language 压缩与语言：协议对齐\n浏览器向服务器声明自己可以接收的数据压缩方法（如gzip）以及首选语言环境（如zh-CN）\n```bash\nAccept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2\nAccept-Encoding: gzip, deflate, br\n```\n\n#### 3.2.6. Cookie 客户端状态凭证：专属令牌\n- 声明客户端本地存储的会话数据。告诉服务器当前请求的相关身份或历史状态。\n- 在安全测试中，若缺失 HttpOnly 属性，极易被XSS攻击；若缺失 SameSite 属性，常牵涉到 CSRF跨站请求伪造漏洞。\n- 浏览器会自动在请求头中携带此字段（大小通常限制在 4KB 以内）。服务端可通过响应头 Set-Cookie 进行下发，建议对敏感信息进行加密或使用 Token 替代。\n```bash\nCookie: Path=/; JSESSIONID=95B38BD3035E3A4F4E1AB7DCEEE558A4; Path=/; SF_cookie_3=25932542\n```\n> Cookie和Session的区别：\n#### 3.2.7. Sec-Fetch-系列 请求元数据与安全策略\n描述请求的目的、模式和站点关系。\n- Dest: empty 表明这是由脚本发起的请求（非图片/文档加载）；\n- Mode: cors 表明是跨域请求模式；\n- Site: same-origin 表明请求完全同源。\n```bash\nSec-Fetch-Dest: empty\nSec-Fetch-Mode: cors\nSec-Fetch-Site: same-origin\n```\n\n#### 3.2.8. Priority 请求优先级\n告知服务器当前请求的相对优先级。 u=0 通常代表最高优先级\n\n*用高优先级可能引发资源耗尽型拒绝服务（DoS）*\n```bash\nPriority u=0\n```\n\n> 下面几个写不动了，就先这些\n\nContent-Type: application/x-www-form-urlencoded;charset=utf-8\n\nX-Requested-With: XMLHttpRequest\n\nContent-Length: 9\n\nOrigin: https://jwglxt.fjnu.edu.cn\n\n\n\n### 3.3. 请求空行\n\n### 3.4. 请求体\n```bash\nylm=12345  （这就是账号12345)\n```\n\n![图片](assets/uploads/202609/http-e72309b3e8.png)\n（*这张图后面补的，证明我真实动手抓过*）\n\n## 四、响应消息-Response结构拆解\n*以下是在Kali中运行curl -I nfs.pcdawn.cn的结果，得到了NFS的响应消息*\n### 4.1.状态行\n包含协议版本和状态码，判断请求是否成功的唯一标准\n```bash\n协议              状态码（含提示）\nHTTP/1.1      301 Moved Permanently\n```\n\n### 4.2 响应头\n#### 4.2.1 Server 中间件指纹\n暴露了服务器使用的中间类型，在渗透中是关键线索，可以寻找对应版本的漏洞\n```bash\nServer: Tengine\n*Tengine是由阿里巴巴发起的Web服务器醒目，\n```\n如果此处直接暴露版本号，假设为Tengine/2.3.3这种带版本号的字段，就可以查找已知漏洞针对性攻击，（*此处删去版本号是增加攻击者的信息收集难度*）\n\n#### 4.2.2 Content-Type 数据格式\n告诉浏览器如何解析内容，text/html代表这是一个网页，需要渲染显示\n```bash\nContent-Type: text/html\n```\n\n### 4.2.3 Location重定向地址\n服务器让我跳转https的根路径（末尾/代表根目录）\n```bash\nLocation: https://nfs.pcdawn.cn/\n```\n\n### 4.2.4Timing-Allow-Origin\n允许任何来源的网页通过 Resource Timing API 获取该资源的详细网络耗时信息。\n\n* 表示不限制来源。\n```bash\nTiming-Allow-Origin: *\n```\n\n### 4.3 响应空行\n\n### 4.4 响应体\n\n![图片](assets/uploads/202609/http-ae7b130145.png)",
+"source":"notes/http协议.md",
+"words":1308,
+"reading_time":4,
+"updated":"2026-09-16",
+"draft":false
+},
+{
 "slug":"ip地址与端口",
 "title":"IP地址与端口",
 "date":"2026-09-15",
@@ -53,7 +67,7 @@ window.SEC_BLOG = {
 "source":"notes/ip地址与端口.md",
 "words":587,
 "reading_time":2,
-"updated":"2026-09-15",
+"updated":"2026-09-16",
 "draft":false
 },
 {
@@ -67,19 +81,22 @@ window.SEC_BLOG = {
 "source":"notes/这是神的开始吗.md",
 "words":90,
 "reading_time":1,
-"updated":"2026-09-15",
+"updated":"2026-09-16",
 "draft":false
 }
 ],
 "links":{
+"http协议":[],
 "ip地址与端口":[],
 "这是神的开始吗":[]
 },
 "backlinks":{
+"http协议":[],
 "ip地址与端口":[],
 "这是神的开始吗":[]
 },
 "broken":{
+"http协议":[],
 "ip地址与端口":[],
 "这是神的开始吗":[]
 }
