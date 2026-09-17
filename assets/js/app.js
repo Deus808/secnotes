@@ -872,3 +872,75 @@
     boot();
   }
 })();
+
+/* ===== 移动端文章目录（发布层注入）===== */
+(function () {
+  var btn = document.getElementById('tocBtn');
+  var drawer = document.getElementById('tocDrawer');
+  var closeBtn = document.getElementById('tocClose');
+  var body = document.body;
+  var app = document.getElementById('app');
+  if (!btn || !drawer || !closeBtn || !app) return;
+
+  function isNoteRoute() { return location.hash.indexOf('#/note/') === 0; }
+  function openToc() { body.classList.add('toc-open'); drawer.setAttribute('aria-hidden', 'false'); }
+  function closeToc() { body.classList.remove('toc-open'); drawer.setAttribute('aria-hidden', 'true'); }
+
+  function fillToc() {
+    var nav = document.getElementById('tocMobile');
+    btn.hidden = !isNoteRoute();
+    if (!isNoteRoute()) {
+      if (body.classList.contains('toc-open')) closeToc();
+      if (nav) nav.innerHTML = '';
+      return;
+    }
+    if (!nav) return;
+    var hs = document.querySelectorAll('#postBody h1,h2,h3,h4');
+    var items = [];
+    hs.forEach(function (h) {
+      if (h.id) items.push({ level: parseInt(h.tagName.slice(1), 10), id: h.id, text: h.textContent });
+    });
+    if (items.length < 2) { nav.innerHTML = ''; return; }
+    nav.innerHTML = '<h5>目录</h5><ul>' + items.map(function (h) {
+      return '<li class="lvl-' + h.level + '"><a href="#' + encodeURIComponent(h.id) +
+        '" data-toc="' + h.id + '">' + h.text.replace(/</g, '&lt;') + '</a></li>';
+    }).join('') + '</ul>';
+    nav.querySelectorAll('a[data-toc]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        closeToc();
+        var el = document.getElementById(a.getAttribute('data-toc'));
+        if (el) {
+          var top = el.getBoundingClientRect().top + window.pageYOffset - 76;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        }
+      });
+    });
+    syncActive();
+  }
+
+  function syncActive() {
+    var nav = document.getElementById('tocMobile');
+    if (!nav) return;
+    var links = nav.querySelectorAll('a[data-toc]');
+    if (!links.length) return;
+    var pos = window.pageYOffset + 110;
+    var cur = null;
+    links.forEach(function (a) {
+      var el = document.getElementById(a.getAttribute('data-toc'));
+      if (el && el.offsetTop <= pos) cur = a;
+    });
+    links.forEach(function (a) { a.classList.toggle('active', a === cur); });
+  }
+
+  btn.addEventListener('click', function () {
+    body.classList.contains('toc-open') ? closeToc() : openToc();
+  });
+  closeBtn.addEventListener('click', closeToc);
+  var backdrop = document.getElementById('backdrop');
+  if (backdrop) backdrop.addEventListener('click', closeToc);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeToc(); });
+  window.addEventListener('scroll', syncActive, { passive: true });
+  new MutationObserver(function () { fillToc(); }).observe(app, { childList: true, subtree: true });
+  fillToc();
+})();

@@ -73,8 +73,20 @@
     document.body.appendChild(wrap);
 
     var shown = false;
-    function show() { if (!shown) { shown = true; replace("sn-show"); } }
-    function hide() { wrap.classList.remove("sn-show"); wrap.classList.add("sn-hide"); }
+    var hideTimer = null;
+    function show() {
+      if (!shown) {
+        shown = true;
+        replace("sn-show");
+        // 显示 5 秒后自动收起（不写入「不再提示」，下次进站仍会提示）
+        hideTimer = setTimeout(hide, 5000);
+      }
+    }
+    function hide() {
+      if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+      wrap.classList.remove("sn-show");
+      wrap.classList.add("sn-hide");
+    }
     function dismiss() { markDismissed(builtAt); hide(); }
     function replace(cls) {
       wrap.className = "sn-wrap " + cls;
